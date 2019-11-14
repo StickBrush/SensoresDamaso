@@ -1,0 +1,246 @@
+openapi: 3.0.1
+info:
+  title: Dámaso sensorización API
+  description: API de sensorización del proyecto Dámaso. Ingeniería de Servicios TIC,
+    Universidad de Extremadura
+  contact:
+    email: jherreragl@alumnos.unex.es
+  version: 1.0.0
+servers:
+- url: https://localhost:8080/sensorapi
+tags:
+- name: Sensores
+  description: Operaciones relacionadas con los sensores físicos
+- name: Usuario
+  description: Operaciones relacionadas con el estado del usuario
+paths:
+  /notifications:
+    get:
+      tags:
+      - Sensores
+      summary: Obtiene el log de cambios de los sensores
+      description: El log se obtiene completo, salvo en caso de estar vacío
+      operationId: get_notification_log
+      responses:
+        200:
+          description: Éxito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SensorNotification'
+                x-content-type: application/json
+        408:
+          description: Log vacío
+          content: {}
+      x-openapi-router-controller: swagger_server.controllers.sensores_controller
+    post:
+      tags:
+      - Sensores
+      summary: Notifica de un cambio en los sensores
+      description: Se notifica de un cambio concreto en un timestamp concreto
+      operationId: notify_change
+      requestBody:
+        description: Cambio en el sensor
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SensorNotification'
+        required: true
+      responses:
+        200:
+          description: Cambio añadido con éxito
+          content: {}
+        405:
+          description: Entrada inválida
+          content: {}
+        406:
+          description: Entrada ya existente
+          content: {}
+      x-openapi-router-controller: swagger_server.controllers.sensores_controller
+  /notifications/{roomID}:
+    get:
+      tags:
+      - Sensores
+      summary: Devuelve el log de cambios de sensores de una habitación
+      description: Se devuelve el log con sus cambios completos, habitación incluida.
+      operationId: get_notification
+      parameters:
+      - name: roomID
+        in: path
+        description: Habitación de la que obtener el cambio
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        200:
+          description: Éxito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SensorNotification'
+                x-content-type: application/json
+        404:
+          description: La habitación no existe
+          content: {}
+        408:
+          description: Entrada inválida
+          content: {}
+      x-openapi-router-controller: swagger_server.controllers.sensores_controller
+  /userStatuses:
+    get:
+      tags:
+      - Usuario
+      summary: Devuelve el log de estados del usuario
+      description: Los estados se generan internamente y permiten entender la información
+        más fácilmente.
+      operationId: get_statuses
+      responses:
+        200:
+          description: Éxito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+                x-content-type: application/json
+        408:
+          description: Entrada inválida
+          content: {}
+      x-openapi-router-controller: swagger_server.controllers.usuario_controller
+  /userStatuses/current:
+    get:
+      tags:
+      - Usuario
+      summary: Devuelve el estado actual del usuario
+      description: Facilita conocer el estado del usuario en el timestamp actual sin
+        complicaciones.
+      operationId: get_curr_status
+      responses:
+        200:
+          description: Éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        404:
+          description: La sensorización está desactivada
+          content: {}
+      x-openapi-router-controller: swagger_server.controllers.usuario_controller
+    put:
+      tags:
+      - Usuario
+      summary: Actualiza el estado actual del usuario
+      description: Permite actualizar el estado del usuario a nivel alto.
+      operationId: change_status
+      requestBody:
+        description: Nuevo estado
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Status'
+        required: true
+      responses:
+        200:
+          description: Estado cambiado con éxito
+          content: {}
+        405:
+          description: Entrada inválida
+          content: {}
+      x-openapi-router-controller: swagger_server.controllers.usuario_controller
+  /userStatuses/{timestamp}:
+    get:
+      tags:
+      - Usuario
+      summary: Devuelve el estado del usuario en el timestamp especificado
+      description: Permite consultar estados pasados
+      operationId: get_status
+      parameters:
+      - name: timestamp
+        in: path
+        description: Timestamp a consultar
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: date-time
+      responses:
+        200:
+          description: Éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Status'
+        404:
+          description: La sensorización estaba desactivada en ese momento
+          content: {}
+        405:
+          description: Entrada inválida
+          content: {}
+      x-openapi-router-controller: swagger_server.controllers.usuario_controller
+components:
+  schemas:
+    SensorNotification:
+      required:
+      - notifType
+      - room
+      - timestamp
+      type: object
+      properties:
+        notifType:
+          type: boolean
+          description: Tipo de notificación. True si es de presencia, false en caso
+            contrario
+          example: true
+        timestamp:
+          type: string
+          description: Timestamp de la notificación
+          format: date-time
+        room:
+          type: string
+          description: Habitación sensorizada
+          example: Salón
+      description: Notificación de cambio en el estado de un sensor.
+      example:
+        notifType: true
+        room: Salón
+        timestamp: 2000-01-23T04:56:07.000+00:00
+    Status:
+      required:
+      - isSitting
+      - room
+      - timestamp
+      type: object
+      properties:
+        isSitting:
+          type: boolean
+          description: Describe si el usuario está o no sentado.
+          example: false
+        timestamp:
+          type: string
+          description: Timestamp del estado.
+          format: date-time
+        room:
+          type: string
+          description: Habitación en la que se encuentra el usuario.
+          example: Cocina
+      description: Estado del usuario.
+      example:
+        isSitting: false
+        room: Cocina
+        timestamp: 2000-01-23T04:56:07.000+00:00
+  responses:
+    405R:
+      description: Entrada inválida
+      content: {}
+    408R:
+      description: Log vacío
+      content: {}
+
