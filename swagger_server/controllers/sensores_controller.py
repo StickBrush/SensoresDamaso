@@ -5,6 +5,8 @@ from swagger_server.models.sensor_notification import SensorNotification  # noqa
 from swagger_server import util
 
 from swagger_server.data.noDb import NotDB
+from swagger_server.data.user import UserStatus
+from swagger_server.models.status import Status
 
 NOTIFICATIONS_COLLECTION_NAME = "notifications"
 VALID_ROOMS = ["Salón", "Dormitorio", "Cocina"]
@@ -24,7 +26,7 @@ def get_notification(room_id):  # noqa: E501
     if room_id not in VALID_ROOMS:
         response = {}, 404
     else:
-        if nots == None:
+        if nots is None:
             response = {}, 408
         else:
             nots = list(filter(lambda x: x.room==room_id, nots))
@@ -74,5 +76,8 @@ def notify_change(body):  # noqa: E501
     else:
         ndb.append_to_collection(NOTIFICATIONS_COLLECTION_NAME, body)
         response = {}, 200
+        us = UserStatus()
+        stat = Status(is_sitting=body.notif_type, room=body.room, timestamp=body.timestamp)
+        us.update_status(stat)
     return response
 

@@ -1,9 +1,12 @@
 import connexion
 import six
+from datetime import datetime
 
 from swagger_server.models.status import Status  # noqa: E501
 from swagger_server import util
 
+from swagger_server.data.noDb import NotDB
+from swagger_server.data.user import UserStatus
 
 def change_status(body):  # noqa: E501
     """Actualiza el estado actual del usuario
@@ -16,8 +19,14 @@ def change_status(body):  # noqa: E501
     :rtype: None
     """
     if connexion.request.is_json:
-        body = Status.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+        try:
+            body = Status.from_dict(connexion.request.get_json())  # noqa: E501
+        except Exception:
+            return {}, 405
+    ndb = NotDB()
+    us = UserStatus()
+    us.update_status(body)
+    return {}, 200
 
 
 def get_curr_status():  # noqa: E501
@@ -28,7 +37,7 @@ def get_curr_status():  # noqa: E501
 
     :rtype: Status
     """
-    return 'do some magic!'
+    return UserStatus().get_status(), 200
 
 
 def get_status(timestamp):  # noqa: E501
@@ -42,7 +51,26 @@ def get_status(timestamp):  # noqa: E501
     :rtype: Status
     """
     timestamp = util.deserialize_datetime(timestamp)
-    return 'do some magic!'
+    timestamp = timestamp.replace(tzinfo=None)
+    if timestamp > datetime.now():
+        response = {}, 405
+    else:
+        ndb = NotDB()
+        stats = ndb.get_collection(UserStatus().STATUSES_COLLECTION)
+        if stats is None:
+            response = {}, 404
+        else:
+            found = None
+            for st in stats:
+                if st.timestamp < timestamp:
+                    found = st
+                else:
+                    break
+            if found is None:
+                response = {}, 404
+            else:
+                response = found, 200
+    return response
 
 
 def get_statuses():  # noqa: E501
@@ -53,4 +81,10 @@ def get_statuses():  # noqa: E501
 
     :rtype: List[Status]
     """
-    return 'do some magic!'
+    ndb = NotDB()
+    stats = ndb.get_collection(UserStatus().STATUSES_COLLECTION)
+    if stats is None:
+        response= {}, 408
+    else:
+        response = stats, 200
+    return response
