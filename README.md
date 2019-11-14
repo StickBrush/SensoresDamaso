@@ -14,7 +14,8 @@ Python 3.5.2+
 To run the server, please execute the following from the root directory:
 
 ```
-pip3 install -r requirements.txt
+pip3 install --user -r requirements.txt
+pip3 install --user connexion[swagger-ui]
 python3 -m swagger_server
 ```
 

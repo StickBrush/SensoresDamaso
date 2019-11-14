@@ -4,6 +4,10 @@ import six
 from swagger_server.models.sensor_notification import SensorNotification  # noqa: E501
 from swagger_server import util
 
+from swagger_server.data.noDb import NotDB
+
+NOTIFICATIONS_COLLECTION_NAME = "notifications"
+VALID_ROOMS = ["Salón", "Dormitorio", "Cocina"]
 
 def get_notification(room_id):  # noqa: E501
     """Devuelve el log de cambios de sensores de una habitación
@@ -15,8 +19,20 @@ def get_notification(room_id):  # noqa: E501
 
     :rtype: List[SensorNotification]
     """
-    return 'do some magic!'
-
+    ndb = NotDB()
+    nots = ndb.get_collection(NOTIFICATIONS_COLLECTION_NAME)
+    if room_id not in VALID_ROOMS:
+        response = {}, 404
+    else:
+        if nots == None:
+            response = {}, 408
+        else:
+            nots = list(filter(lambda x: x.room==room_id, nots))
+            if len(nots) == 0:
+                response = {}, 408
+            else:
+                response = nots, 200
+    return response
 
 def get_notification_log():  # noqa: E501
     """Obtiene el log de cambios de los sensores
@@ -26,8 +42,13 @@ def get_notification_log():  # noqa: E501
 
     :rtype: List[SensorNotification]
     """
-    return 'do some magic!'
-
+    ndb = NotDB()
+    nots = ndb.get_collection(NOTIFICATIONS_COLLECTION_NAME)
+    if nots == None or len(nots) == 0:
+        response = {}, 408
+    else:
+        response = nots, 200
+    return response
 
 def notify_change(body):  # noqa: E501
     """Notifica de un cambio en los sensores
@@ -40,5 +61,18 @@ def notify_change(body):  # noqa: E501
     :rtype: None
     """
     if connexion.request.is_json:
-        body = SensorNotification.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+        try:
+            body = SensorNotification.from_dict(connexion.request.get_json())  # noqa: E501
+        except Exception:
+            return {}, 405
+    ndb = NotDB()
+    nots = ndb.get_collection(NOTIFICATIONS_COLLECTION_NAME)
+    if nots is not None:
+        nots = list(filter(lambda x: x.timestamp == body.timestamp, nots))
+        if len(nots) > 0:
+            response = {}, 406
+    else:
+        ndb.append_to_collection(NOTIFICATIONS_COLLECTION_NAME, body)
+        response = {}, 200
+    return response
+
