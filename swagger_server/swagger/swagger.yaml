@@ -7,7 +7,7 @@ info:
     email: jherreragl@alumnos.unex.es
   version: 1.0.0
 servers:
-- url: https://localhost:8080/sensorapi
+- url: /
 tags:
 - name: Sensores
   description: Operaciones relacionadas con los sensores físicos
