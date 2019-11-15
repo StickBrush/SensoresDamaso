@@ -26,13 +26,13 @@ python3 -m swagger_server
 and open your browser to here:
 
 ```
-http://localhost:8080/sensorapi/ui/
+http://localhost:8080/ui/
 ```
 
 Your Swagger definition lives here:
 
 ```
-http://localhost:8080/sensorapi/swagger.json
+http://localhost:8080/swagger.json
 ```
 
 To launch the integration tests, use tox:
