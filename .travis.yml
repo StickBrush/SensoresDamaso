@@ -5,3 +5,8 @@ install:
   - pip install -r requirements.txt
   - pip install tox
 script: tox
+deploy:
+  provider: heroku
+  api_key:
+    secure: "sOxAXkfiCOx8xh2jdJKak7bNMFTvykDsMIYROF7OKhAySoQUyObF9XPYtxS/1/B+aDG7mpaydqOVbQo3lVwpfguCNJ0eNjXeJkTzp2iI+6Ek7ZilTMEUi7BAiFJu5KFi3iX72R/V2YcB0FdPiGmekCd959tkIoFwAEAgviMDToWsCxWluEp3dh4ljAKz1790F7KNu6ptoKxtFRlznL60jbdJF5jm6xTmEw2ZrfRy14t0exrOkEJr9evg4ip4koDneJAEptZsISjVvCciKSkjoBwLXMLB8t/EvwPihc7pWBljaKD4i0Icd7k9c+OwVPYDE2vy7zT7odhJtEytvoUc4NBvEsZau2mwK/h7iUPqvmYzgpn8elgW//OJTjhP4wd6bUHaWyU9jHyNjEJtj5LNcG1AqoMSJlhQaWu4vQuHDFZA3x6FRE3xA9c3HRRN0pw6WB7z4uIf2PAFCj3xbgfBRC/+gBaEHJ2lNz7q3lVggBegkCYwpg/8Gnq9O79rFIheZSj89xUcAbcNziLZSoUvIYvnfsoLt5D8rnfR+Vt1HNlLwAsPUXKMl+qpgw6wzNFIVQhuta5lGYteiUT71qFo2oQtbLzidOB3kj/J7GJUQ+drqilFH+HCXOQl/9hiuO9DS1uaiEGJRh11htb6Bn3S6U0JKwM/o8AS7sFpLr6IOz8="
+  app: damasosensores
